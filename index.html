@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Game</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+        }
+        
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        #centralCircle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+        
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+        }
+        
+        #logo {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+            background-color: white;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E") no-repeat 50% 50%;
+            mask-size: cover;
+        }
+        
+        #homeButton {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+        }
+        
+        #homeIcon {
+            width: 40px;
+            height: 40px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'%3E%3C/path%3E%3Cpolyline points='9 22 9 12 15 12 15 22'%3E%3C/polyline%3E%3C/svg%3E") no-repeat center center;
+            background-size: contain;
+        }
+        
+        #homeText {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        #dayCounter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 14px;
+        }
+        
+        .point-animation {
+            position: absolute;
+            font-size: 24px;
+            animation: fadeUp 1s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes fadeUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="centralCircle"></div>
+    <div id="score">
+        <div id="logo"></div><span id="scoreValue">0</span></div>
+    <div id="homeButton">
+        <div id="homeIcon"></div>
+        <div id="homeText">Home</div>
+    </div>
+    <div id="dayCounter">4Day</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const centralCircle = document.getElementById('centralCircle');
+        const scoreValue = document.getElementById('scoreValue');
+        const homeButton = document.getElementById('homeButton');
+
+        let score = 0;
+        scoreValue.textContent = score;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        centralCircle.addEventListener('click', (event) => {
+            score++;
+            scoreValue.textContent = score;
+
+            const pointAnimation = document.createElement('div');
+            pointAnimation.textContent = '+1';
+            pointAnimation.className = 'point-animation';
+            pointAnimation.style.left = `${event.clientX}px`;
+            pointAnimation.style.top = `${event.clientY}px`;
+            document.body.appendChild(pointAnimation);
+
+            setTimeout(() => {
+                document.body.removeChild(pointAnimation);
+            }, 1000);
+        });
+
+        homeButton.addEventListener('click', () => {
+            homeButton.style.boxShadow = '0 0 20px white';
+            setTimeout(() => {
+                homeButton.style.boxShadow = '0 4px 6px rgba(255, 255, 255, 0.1)';
+            }, 300);
+        });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>
